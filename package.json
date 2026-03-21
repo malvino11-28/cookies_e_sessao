@@ -1,0 +1,31 @@
+{
+  "name": "trabalho",
+  "version": "1.0.0",
+  "description": "Formulário de evento com método POST",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Malvino30-06/formulario-evento-HTTP.git"
+  },
+  "keywords": [
+    "HTTP",
+    "POST",
+    "boostrap",
+    "HTML",
+    "JS"
+  ],
+  "author": "Kauan Malvino Garcia",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/Malvino30-06/formulario-evento-HTTP/issues"
+  },
+  "homepage": "https://github.com/Malvino30-06/formulario-evento-HTTP#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
