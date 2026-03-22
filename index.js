@@ -1,14 +1,29 @@
 import express from "express";
+import session from "express-session";
 
 const host = "0.0.0.0";
 const port = 3000;
 const app = express();
 
 var dadosProdutos = [];
+var logado;
 
+// sessão deverá ser parametrizada (escolher o comportamento desejado)
+app.use(
+  session({
+    secret: "secret",
+    resave: true, // a cada requisição, a sessão se manterá salva
+    saveUninitialized: true, // mesmo sem informação, sessões vazias serão criadas
+    cookie: {
+      secure: false, // false para desenvolvimento, true para produção (HTTPS)
+      httpOnly: true, // Apenas paginas http terão acessos ao cookie
+      maxAge: 1000 * 60 * 15, // 15 minutos
+    }, // cookie acompanha as requisições
+  }),
+);
 app.use(express.urlencoded({ extended: true }));
 
-app.get("/", (req, res) => {
+app.get("/", verificaLogin, (req, res) => {
   res.send(`<!doctype html>
 <html lang="en">
   <head>
@@ -30,7 +45,7 @@ app.get("/", (req, res) => {
       <div class="d-flex row gap-3">
         <a href="/cadastro">
           <button type="button" class="btn btn-primary btn-lg">
-            CADASTRAR-SE
+            CADASTRAR PRODUTO
           </button>
         </a>
         <a href="/login">
@@ -58,7 +73,7 @@ app.get("/", (req, res) => {
   `);
 });
 
-app.get("/cadastro", (req, res) => {
+app.get("/cadastro", verificaLogin, (req, res) => {
   res.send(`<!DOCTYPE html>
 <html lang="pt-br">
   <head>
@@ -147,7 +162,7 @@ app.get("/cadastro", (req, res) => {
   `);
 });
 
-app.get("/logout", (req, res) => {
+app.get("/logout", verificaLogin, (req, res) => {
   res.send(`
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <div class="container mt-5 text-center">
@@ -172,7 +187,9 @@ app.get("/login", (req, res) => {
   </head>
   
   <body>
-  <div class="form-row mx-auto text-center m-5 container"> <form method="POST" action="/login_ver"> <h1>LOGIN</h1>
+  <div class="form-row mx-auto text-center m-5 container">
+   <form method="POST" action="/login_ver"> 
+   <h1>LOGIN</h1>
     
         </div> <div class="form-row">
             <div class="name">E-mail</div>
@@ -252,52 +269,16 @@ app.post("/login_ver", (req, res) => {
     res.write(login);
     res.end();
   } else {
-    let loginS = `<!DOCTYPE html>
-<html lang="pt-br">
-  <head>
-    <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, shrink-to-fit=no"
-    />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-  </head>
-  
-  <body>
-  <div class="form-row mx-auto text-center m-5 container"> <form method="POST" action="/login_ver"> <h1>LOGIN</h1>
-    
-        </div> <div class="form-row">
-            <div class="name">E-mail</div>
-            <div class="input-group mb-3">
-                <input class="form-control" type="text" name="email" placeholder="exemplo@exemplo.com" />
-            </div>
-        </div>
-        </div> <div class="form-row">
-            <div class="name">Senha</div>
-            <div class="input-group mb-3">
-                <input class="form-control" type="password" name="senha" placeholder="*****" />
-            </div>
-            
-            <div>
-                <button class="btn btn-success" type="submit">Entrar</button>
-            </div>
-            <div class="alert alert-success" role="alert">
-      Login efetuado com sucesso!
-</div>
-        </div>
-         </form>
-          </div>
-  
-  </body>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
-            `;
-
-    res.write(loginS);
+    // validação estática
+    if (email == "admin@test.com.br" && senha == "admin") {
+      req.session.logado = true; // cria info de que usuario esta logado
+      res.redirect("/");
+    }
     res.end();
   }
 });
 
-app.post("/produto", (req, res) => {
+app.post("/produto", verificaLogin, (req, res) => {
   const codigo = req.body.codigo;
   const desc = req.body.desc;
   const precusto = req.body.precusto;
@@ -449,7 +430,7 @@ app.post("/produto", (req, res) => {
   }
 });
 
-app.get("/lista", (req, res) => {
+app.get("/lista", verificaLogin, (req, res) => {
   res.write(`<html lang="pt-br">
     <head>
       <meta charset="utf-8">
@@ -497,6 +478,14 @@ app.get("/lista", (req, res) => {
 
   res.end();
 });
+
+// middleware
+function verificaLogin(req, res, next) {
+  if (req.session?.logado) {
+    // '?' -> verifica se a informação existe
+    next();
+  } else res.redirect("/login");
+}
 
 app.listen(port, () => {
   console.log(`Servidor rodando em http://${host}:${port}`);
