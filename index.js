@@ -1,5 +1,6 @@
 import express from "express";
 import session from "express-session";
+import cookieParser from "cookie-parser";
 
 const host = "0.0.0.0";
 const port = 3000;
@@ -21,6 +22,9 @@ app.use(
     }, // cookie acompanha as requisições
   }),
 );
+
+app.use(cookieParser());
+
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/", verificaLogin, (req, res) => {
@@ -73,8 +77,9 @@ app.get("/", verificaLogin, (req, res) => {
   `);
 });
 
-app.get("/cadastro", verificaLogin, (req, res) => {
-  res.send(`<!DOCTYPE html>
+app.get("/cadastro", (req, res) => {
+  if (req.session?.logado) {
+    res.send(`<!DOCTYPE html>
 <html lang="pt-br">
   <head>
     <meta charset="UTF-8" />
@@ -160,6 +165,25 @@ app.get("/cadastro", verificaLogin, (req, res) => {
   ></script>
 </html>
   `);
+  } else {
+    res.send(`
+    <html>
+      <head>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+      </head>
+      <body>
+        <div class="container mt-5 text-center">
+          <div class="alert alert-danger">
+            <h3>Login necessário!</h3>
+            <p>Você precisa estar logado para acessar essa página.</p>
+          </div>
+
+          <a href="/login" class="btn btn-primary">Ir para login</a>
+        </div>
+      </body>
+    </html>
+    `);
+  }
 });
 
 app.get("/logout", verificaLogin, (req, res) => {
@@ -169,9 +193,10 @@ app.get("/logout", verificaLogin, (req, res) => {
       <div class="alert alert-info">
         <h3>Logout efetuado com sucesso!</h3>
       </div>
-      <a href="/" class="btn btn-primary">Voltar para o Menu</a>
+      <a href="/" class="btn btn-primary">Voltar para a tela de Login</a>
     </div>
   `);
+  req.session.destroy();
 });
 
 app.get("/login", (req, res) => {
@@ -183,36 +208,56 @@ app.get("/login", (req, res) => {
       name="viewport"
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
     />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+      crossorigin="anonymous"
+    />
   </head>
-  
+
   <body>
-  <div class="form-row mx-auto text-center m-5 container">
-   <form method="POST" action="/login_ver"> 
-   <h1>LOGIN</h1>
-    
-        </div> <div class="form-row">
-            <div class="name">E-mail</div>
-            <div class="input-group mb-3">
-                <input class="form-control" type="text" name="email" placeholder="exemplo@exemplo.com" />
+    <div class="container mt-5">
+      <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+          <form method="POST" action="/login_ver" class="border p-4 rounded shadow">
+            <h1 class="text-center mb-4">LOGIN</h1>
+
+            <div class="mb-3">
+              <label class="form-label">E-mail</label>
+              <input
+                class="form-control"
+                type="text"
+                name="email"
+                placeholder="exemplo@exemplo.com"
+              />
             </div>
+
+            <div class="mb-3">
+              <label class="form-label">Senha</label>
+              <input
+                class="form-control"
+                type="password"
+                name="senha"
+                placeholder="*****"
+              />
+            </div>
+
+            <div class="d-grid">
+              <button class="btn btn-success" type="submit">Entrar</button>
+            </div>
+          </form>
         </div>
-        </div> <div class="form-row">
-            <div class="name">Senha</div>
-            <div class="input-group mb-3">
-                <input class="form-control" type="password" name="senha" placeholder="*****" />
-            </div>
-            
-            <div>
-                <button class="btn btn-success" type="submit">Entrar</button>
-            </div>
-        </div>
-         </form>
-          </div>
-  
+      </div>
+    </div>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+      crossorigin="anonymous"
+    ></script>
   </body>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
-            `);
+</html>`);
 });
 
 app.post("/login_ver", (req, res) => {
@@ -232,7 +277,11 @@ app.post("/login_ver", (req, res) => {
   </head>
   
   <body>
-  <div class="form-row mx-auto text-center m-5 container"> <form method="POST" action="/login_ver"> <h1>LOGIN</h1>
+<div class="container mt-5">
+  <div class="row justify-content-center">
+      <div class="col-md-6 col-lg-4">
+  <form method="POST" action="/login_ver"> 
+  <h1>LOGIN</h1>
     
         </div> <div class="form-row">
             <div class="name">E-mail</div>
@@ -263,6 +312,8 @@ app.post("/login_ver", (req, res) => {
         </div>
          </form>
           </div>
+          </div>
+          </div>
   
   </body>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>`;
@@ -272,6 +323,12 @@ app.post("/login_ver", (req, res) => {
     // validação estática
     if (email == "admin@test.com.br" && senha == "admin") {
       req.session.logado = true; // cria info de que usuario esta logado
+      // adicionar cookie com os dados do ultimo acesso
+      const dataUltimoAcesso = new Date();
+      res.cookie("dataUltimoAcesso", dataUltimoAcesso.toLocaleString(), {
+        maxAge: 100 * 60 * 60 * 24 * 30,
+        httpOnly: true,
+      });
       res.redirect("/");
     }
     res.end();
@@ -431,6 +488,7 @@ app.post("/produto", verificaLogin, (req, res) => {
 });
 
 app.get("/lista", verificaLogin, (req, res) => {
+  const ultimoAcesso = req.cookies?.dataUltimoAcesso || "Não houve acessos";
   res.write(`<html lang="pt-br">
     <head>
       <meta charset="utf-8">
@@ -469,8 +527,13 @@ app.get("/lista", verificaLogin, (req, res) => {
   res.write(`
           </tbody>
         </table>
-        <a href="/" class="btn btn-success">Voltar para o menu</a>
-      </div>
+        <a href="/" class="btn btn-success">Voltar para o menu</a>`);
+
+  res.write(`
+    <p class="mt-5 mb-3 text-body-secondary">Último acesso: ${ultimoAcesso}</p>
+    `);
+  res.write(`
+    </div> 
     </body>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
   </html>
