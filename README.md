@@ -1,26 +1,22 @@
-# 🍪 Cookies e Sessão com Node.js
+# Cookies e Sessão com Node.js
 
 Projeto de autenticação usando cookies e sessões.
 
-## 🚀 Tecnologias
+## Tecnologias
 
 -   Node.js
 -   Express
 -   Cookies
 -   Sessões
 
-## 🎯 Funcionalidades
+## Funcionalidades
 
 -   Login
 -   Controle de sessão
 -   Rotas protegidas
 
-## ▶️ Como executar
+## Como executar
 
 node server.js
 
 Acesse: http://localhost:3000
-
-## 📚 Status
-
-✅ Projeto finalizado
